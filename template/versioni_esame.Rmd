@@ -1,0 +1,137 @@
+---
+title: "Versioni"
+author: "Tavano Matteo"
+date: "18/1/2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+##Quantitativo-quantitativo
+NomeDataset = read.csv("percorso")
+view(NomeDataset)
+summary(NomeDataset$Caratteristica) # Notiamo se la media è vicina alla mediana, per vedere se la distribuzione sarà simmetrica o meno
+boxplot(NomeDataset$Caratteristica) #Ulteriore conferma della simmetria o meno del dato osservando i baffi della box
+#Per entrambe
+library(moments)
+skewness(NomeDataset$Caratteristica) # Serve a determinare la direzione della distribuzione, se positivo a destra se negativo a sinistro. Se zero gaussiana. Se gaussiana allora simmetrica, altrimenti asimmetrica positiva o negativa
+kurtosis(NomeDataset$Caratteristica) # Serve a determinare se ci sono elementi particolarmente distanti dalla media, più è alto più sono distanti, il valore base è 3 e si dice normocurtica. Se è minore si dice platicurtica mentre se maggiore leptocurtica.
+#Per entrambe
+qqnorm(NomeDataset$Caratteristica) # Crea un grafico della distribuzione per vedere graficamente se è normale
+qqline(NomeDataset$Caratteristica) # Aggiunge solo una linea di tendenza
+#per entrambe
+plot(NomeDataset$Caratteristica1, NomeDataset$Caratteristica2) # Si osserva come le due caratteristiche si distribuiscono vicendevolmente, non molte considerazioni da fare se non vedere quale dipende da quale
+# Se sono normali TEST DI PEARSON Usare la funzione di due linee sotto col metodo cambiato
+# Altrimenti spearman o kendall
+cor.test(NomeDataset$Caratteristica1,NomeDataset$Caratteristica, method="spearman") # Osservare se Rho è uguale a zero o meno, più vicino a uno sarà più sarà alta la correlazione. Se il p-value è vicinissimo a zero rifiutiamo l'ipotesi che Rho sia nullo
+# Se c'è correlazione proseguiamo con
+mod= lm(Caratteristica1~Caratteristica2, data=NomeDataset)
+summary(mod) # CI fornisce l'analisi della regressione indicandoci la stima dell'intercetta e il coefficiente angolare della retta che descrive la regressione, se il p-value è piccolo con tante stelline ci sarà una relazione lineare tra le variabili. Osservando R quandro possiamo vedere che percentuale della variabile dipendente è spiegata dalla variabile indipendente
+plot(NomeDataset$Caratteristica1, NomeDataset$Caratteristica2)
+abline(mod, col=2) # Rappresentazione grafica dei dati trovati
+plot(mod, which=1)  # Occorre andare a controllare se le ipotesi del modello lineare sono confermati. Questo valori stimati contro residui. OSserviamo se questi ultimi si dispongono casualmente, In questo caso specificare che l'omogenità non è soddisfatta
+plot(mod, which=2)  # Si controlla la distribuzione dei residui, se è lungo la retta essa è normale
+plot(mod, which=4) # Cercare gli outliers, se la distanza di cook è sotto 0.2 non ce ne sono
+```
+
+```{r}
+## QUALITATIVO-QUANTITATIVO
+summary(as.factor(NomeDataset$CaratteristicaQual)) # Non fa altro che darci le frequenze delle varie modalità
+barplot(table(as.factor(NomeDataset$CaratteristicaQual))) # Ne facciamo il grafico giusto per vedere com'è
+summary(NomeDataset$CaratteristicaQuant) # Come prima possiamo osservare info sulle differenze tra media e mediana
+boxplot(NomeDataset$CaratteristicaQuant) # Riferirsi a prima
+boxplot(NomeDataset$CaratteristicaQuant~NomeDataset$CaratteristicaQual) # Dividere nei vari casi qualitativi la variabile quantitativa
+tapply(NomeDataset$CaratteristicaQuant, NomeDataset$CaratteristicaQual, summary) # Osservazione simile a un summary ma per tutte le variabili qualitative in rapporto a quella quntitativa, traendo conclusioni sulla simmetria e la differenze tra le medie dei valori qualitativi
+# Prendiamo le classi quantitative con specifiche caratteristiche Qualitative
+NomeCar_Qual1= NomeDataset$CaratteristicaQuant[NomeDataset$CaratteristicaQual=="NomeCarQual1"]
+NomeCar_Qual2= NomeDataset$CaratteristicaQuant[NomeDataset$CaratteristicaQual=="NomeCarQual2"]
+qqnorm(NomeCar_Qual1) # Rifarsi alle funzioni prima
+qqline(NomeCar_Qual1) # Rifarsi alle funzioni prima
+qqnorm(NomeCar_Qual2) # Rifarsi alle funzioni prima
+qqline(NomeCar_Qual2) # Rifarsi alle funzioni prima
+library(moments)
+skewness(NomeCar_Qual1) # Rifarsi alle funzioni prima
+kurtosis(NomeCar_Qual1) # Rifarsi alle funzioni prima
+#per entrambe
+#Se sono indipendenti (praticamente sempre)
+var.test(NomeCar_Qual1,NomeCar_Qual2) # Serve a rifiutare o meno l'ipotesi che le varianze siano uguali
+#se le varienze sono uguali
+t.test(NomeCar_Qual1,NomeCar_Qual2, var.equal= T) # Valutiamo qui le medie nell'ipotesi che siano uguali o meno
+```
+
+```{r}
+## QUALITATIVO-QUALITATIVO
+csv = read.csv("C:/Users/Demie/Desktop/Demien/uniud/II anno/Statistica/laboratorio/Birthweight.csv")
+View(csv)
+summary(as.factor(csv$VarQual1))
+barplot(table(as.factor(csv$VarQual1)))
+# notiamo che non c'è equilibrio, quindi non abbiamo simmetria
+summary(as.factor(csv$VarQual2))
+barplot(table(as.factor(csv$VarQual2)))
+# notiamo che non c'è equilibrio, quindi non abbiamo simmetria
+
+skewness(csv$VarQual1) # c'è asimmetri positiva in quanto il valore risulta essere maggiore di zero
+kurtosis(csv$VarQual1) # la distribuzione risulta essere leptocurtica
+skewness(csv$VarQual2) # c'è asimmetri positiva in quanto il valore risulta essere maggiore di zero
+kurtosis(csv$VarQual2) # la distribuzione risulta essere leptocurtica
+
+tab <- cbind.data.frame(csv$VarQual2, csv$VarQual1)
+colnames(tab) <- c("X","Y")
+tab$X <- ordered(tab$X, levels=c("0","1"))
+tab$Y <- ordered(tab$Y, levels=c("0","1"))
+str(tab)
+tab <- table(tab$X,tab$Y)
+
+xtot = as.matrix(margin.table(tab, 1)) #distribuzione marginale di x
+ytot = as.matrix(margin.table(tab, 2)) #distribuzione marginale di y
+# entrambi sono vettori interpretati come matrici
+
+tab_ind = xtot%*%t(ytot)/sum(xtot) # tab di contingenza nel caso in cui ci fosse indipendenza
+chisq_tot = sum((tab-tab_ind)^2/tab_ind) #indice di connessione chi-quadrato
+#in alternativa si può utilizzare summary ma sconsiglio in quanto chisq_tot serve poi
+summary(tab)
+chisq_tot/(sum(tab)*min(c(length(tab[1,])-1,
+                          length(tab[,1])-1)))
+# calcolato l'indice chi-quadrato normalizzato osserviamo il suo valore, in questo caso essendo molto vicino allo 0 notiamo che c'è indipendenza tra le variabili
+```
+
+
+# per decidere il tipo di test
+Si evidenziano tre situazioni tipiche:
+le due variabili sono qualitative: analisi di dipendenza o
+(connessione);
+una variabile è qualitativa e l'altra quantitativa: analisi di
+dipendenza in media;
+le due variabili sono quantitative: analisi di correlazione e analisi
+di regressione.
+
+
+# simmetria
+Un istogramma asimmetrico presenta una coda più lunga dell'altra. Se la
+coda destra è più lunga, si parla di asimmetria positiva, se la coda
+sinistra è più lunga si ha asimmetria negativa.
+Si noti che:
+se l'asimmetria è positiva allora media > mediana;
+se c'è simmetria allora media = mediana;
+se l'asimmetria è negativa allora media < mediana. 
+Se la distribuzione di frequenza è:
+simmetrica se l'indice di simmetria = 0; 
+asimmetrica negativa se l'indice di simmetria < 0; 
+asimmetrica positiva se l'indice di simmetria > 0. 
+
+
+# curtosi
+La curtosi corrisponde ad un allontanamento dalla distribuzione di
+frequenza normale (o gaussiana), che viene considerata come riferimento.
+Una distribuzione platicurtica (ipornormale) presenta un maggiore
+appiattimento e code leggere, mentre una distribuzione leptocurtica
+(ipernormale) manifesta un maggiore allungamento e code pesanti.
+Se la distribuzione di frequenza è:
+normocurtica se l'indice di curtosi = 3; 
+leptocurtica se l'indice di curtosi > 3;
+se è platicurtica se l'indice di curtosi < 3.
